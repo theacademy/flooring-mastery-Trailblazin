@@ -2,6 +2,8 @@ package com.sg.floormaster.ui;
 
 import com.sg.floormaster.dto.Order;
 import com.sg.floormaster.dto.Order;
+import com.sg.floormaster.dto.Product;
+import com.sg.floormaster.dto.Tax;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +12,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author Kyle David Rudy
@@ -28,7 +31,7 @@ public class OrderView {
         private UserIO io;
      */
 
-    public void displayBookTrackerBanner() {
+    public void displayOrderTrackerBanner() {
         io.print("Welcome to the Flooring Program:");
     }
 
@@ -36,8 +39,8 @@ public class OrderView {
         io.print("");
         io.print("Main Menu");
         io.print("1. Display Orders");
-        io.print("3. Add Order");
-        io.print("2. Edit an Order");
+        io.print("2. Add Order");
+        io.print("3. Edit an Order");
         io.print("4. Remove an Order");
         io.print("5. Export All Data");
         io.print("6. Exit");
@@ -51,13 +54,17 @@ public class OrderView {
 
     public void displayOrders(List<Order> orders) {
         io.print("");
-        io.print("All Orders");
+        io.print("Show All Orders");
 
-        LocalDate date = io.readDate("Enter order date:");
+        LocalDate date = null;
+        while (date == null){
+            date = io.readDate("Enter a valid order date:");
+        }
+
         //Iterate and output all orders that match date
         for (Order order : orders)
         {
-            if(order.getOrderDate() == date)
+            if(order.getOrderDate().isEqual(date))
             {
                 displayOrderDetails(order);
             }
@@ -66,21 +73,21 @@ public class OrderView {
 
 
     public void displayOrderDetails(Order order) {
-        io.print("");
+        io.print("Order details for Order Number: " + order.getOrderNumber());
         //TODO: Format toString
         io.print(order.toString() + "\n");
     }
 
     //Use Case: Add new order
-    public Order getNewOrder() {
+    public Order getNewOrder(LocalDate originalDate, List<Tax> taxes, List<Product> products) {
         io.print("");
         io.print("Enter new order info");
-        LocalDate orderDate = io.readDate("Please enter a valid order date:", LocalDate.now());
+        LocalDate orderDate = io.readDate("Please enter a valid order date:", originalDate);
         String customerName = io.readString("Please enter a valid customer name:");
-        // TODO: Make States and Product Type Sets to be read from memore
-        //TODO Make Tax Dict with State and value
-        String state = "";
-        String productType = "";
+        List<String> taxState = taxes.stream().map(Tax::getStateAbbr).collect(Collectors.toList());
+        String state = io.readString("Please enter a valid state: (" + taxState + ")");
+        List<String> productTypes = products.stream().map(Product::getProductType).collect(Collectors.toList());
+        String productType = io.readString("Please enter a valid product type: (" + productTypes + ")");
         BigDecimal area = io.readDecimal("Please enter an area (sq.ft) for your order (>= 100 ): ");
         Order order = new Order(orderDate, customerName, state, productType, area);
 
@@ -112,28 +119,17 @@ public class OrderView {
     public Order getOrder(Map<Integer, Order> orders) {
         io.print("");
         LocalDate date = io.readDate("Enter date for the orders to retrieve:");
-        //TODO: Add a print statement to display all orders which match the date
+        for (Order order : orders.values())
+        {
+            if(order.getOrderDate().isEqual(date))
+            {
+                displayOrderDetails(order);
+            }
+
+        }
         int orderNo = io.readInt("Enter the Order No. for the order to retrieve:");
-        //Stream Orders in Order to get all order information
-        /*
-       Order orderMatch = (Order) orders.entrySet()
-                //Stream collection of Orders
-                .stream()
-                //Get all orders that match the date and number - should be one
-                .filter(entry -> entry.getValue().getOrderDate().equals(date)
-                        && entry.getValue().getOrderNumber() == orderNo)
-                //Hence, why findFirst is used
-                .findFirst()
-                .orElse(null);
-         */
         Order orderMatch = orders.get(orderNo);
-        if (orderMatch != null && orderMatch.getOrderDate() == date) {
-            return orderMatch;
-        }
-        // Should never happen,  we can't be using the same ID for multiple dates
-        else {
-            return null;
-        }
+        return orderMatch;
     }
 
     //UseCase update an order
@@ -192,9 +188,10 @@ public class OrderView {
     }
 
     public Order deleteOrder(Map<Integer, Order> orders) {
-        io.print("");
+        io.print("Preparing to Delete Order:");
         // Will get order given input, ask if they want to delete order
         // If order is returned, delete is wanted; if null, do not delete
+        io.print(orders.values().toString());
         return confirmOrderChanges(getOrder(orders),"delete");
     }
 

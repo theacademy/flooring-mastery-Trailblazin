@@ -1,5 +1,6 @@
 package com.sg.floormaster.controller;
 
+import com.sg.floormaster.PersistenceException;
 import com.sg.floormaster.dto.Order;
 import com.sg.floormaster.dto.Tax;
 import com.sg.floormaster.service.OrderService;
@@ -17,8 +18,8 @@ import java.util.List;
 @Controller
 public class OrderController {
 
-    private OrderServiceImpl service;
-    private OrderView view;
+    private final OrderServiceImpl service;
+    private final OrderView view;
 
     @Autowired
     public OrderController(OrderServiceImpl service, OrderView view) {
@@ -26,19 +27,29 @@ public class OrderController {
         this.view = view;
     }
     
-    public void run() {
-        view.displayBookTrackerBanner();
+    public void run()  {
+        try {
+            service.loadOrders();
+            service.loadProducts();
+            service.loadTaxes();
+        }
+        catch (Exception e)
+        {
+            System.out.println("Error in loading files for application: " + e.getMessage());
+            System.exit(0);
+        }
+        view.displayOrderTrackerBanner();
         
         while(true) {
             int choice = view.displayMenuAndGetChoice();
             
             switch(choice) {
                 case 1: //view all orders
-                    List<Order> orders = service.getOrders();
-                    view.displayOrders(orders);
+                    view.displayOrders(service.getOrders());
                     break;
                 case 2: //add one new order
-                    Order newOrder = view.getNewOrder();
+                    //Provide date from first order to get orders
+                    Order newOrder = view.getNewOrder(service.getOrders().get(0).getOrderDate(),service.getTaxes(),service.getProducts());
                     if (newOrder != null){
                         service.addOrder(newOrder);
                         view.displayAddSuccess();

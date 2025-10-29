@@ -11,6 +11,12 @@ public class Product {
     private BigDecimal matCostPerSqFoot;
     private BigDecimal labourCostPerSqFoot;
 
+    public Product(String productType, BigDecimal matCostPerSqFoot, BigDecimal labourCostPerSqFoot) {
+        this.productType = productType;
+        this.matCostPerSqFoot = matCostPerSqFoot;
+        this.labourCostPerSqFoot = labourCostPerSqFoot;
+    }
+
     public String getProductType() {
         return productType;
     }
@@ -33,5 +39,14 @@ public class Product {
 
     public void setLabourCostPerSqFoot(BigDecimal labourCostPerSqFoot) {
         this.labourCostPerSqFoot = labourCostPerSqFoot;
+    }
+
+    @Override
+    public String toString() {
+        return "Product{" +
+                "productType='" + productType + '\'' +
+                ", matCostPerSqFoot=" + matCostPerSqFoot +
+                ", labourCostPerSqFoot=" + labourCostPerSqFoot +
+                '}';
     }
 }

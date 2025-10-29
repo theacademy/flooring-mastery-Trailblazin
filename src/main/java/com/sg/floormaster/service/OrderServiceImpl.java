@@ -1,5 +1,6 @@
 package com.sg.floormaster.service;
 
+import com.sg.floormaster.PersistenceException;
 import com.sg.floormaster.dao.OrderDao;
 import com.sg.floormaster.dao.ProductDao;
 import com.sg.floormaster.dao.TaxDao;
@@ -32,12 +33,23 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public int getNextOrderNumber() {
-        return -1;
+        return orderDao.getLargestOrderNumber();
     }
 
     @Override
     public void addOrder(Order order) {
         orderDao.addOrder(order);
+    }
+
+    @Override
+    public void loadOrders() throws PersistenceException {
+        orderDao.loadOrders();
+    }
+    public void loadTaxes() throws PersistenceException {
+        taxDao.loadTaxesFromFile();
+    }
+    public void loadProducts() throws PersistenceException {
+        productDao.loadProductsFromFile();
     }
 
 
@@ -55,13 +67,14 @@ public class OrderServiceImpl implements OrderService {
         orderDao.removeOrder(order);
     }
 
+
     @Override
     public List<Tax> getTaxes() {
-        return null;
+        return taxDao.getAllTaxes();
     }
 
     @Override
     public List<Product> getProducts() {
-        return null;
+        return productDao.getAllProducts();
     }
 }

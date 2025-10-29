@@ -19,12 +19,13 @@ import java.util.*;
 public class OrderDaoImpl implements OrderDao {
 
     private Map<Integer, Order> orders;
-    private final String ORDER_FILE = "data/orders.txt";
+    private final String ORDER_FILE = "data/orders_06012013.txt";
     private final String DELIMITER = ",";
 
     private static int largestOrderNumber = 0;
 
-    private Order unmarshallOrder(String orderAsText){
+    @Override
+    public Order unmarshallOrder(String orderAsText){
 
         String[] orderTokens = orderAsText.split(DELIMITER);
 
@@ -62,7 +63,7 @@ public class OrderDaoImpl implements OrderDao {
         BigDecimal total = new BigDecimal(orderTokens[11]);
 
         // We have now created a order! Return it!
-        return new Order(orderId, LocalDate.now(), customerName,
+        return new Order(orderId, LocalDate.of(2013, 6, 1), customerName,
                 state,productType,area, matCostPerSqFt, laborCostPerSqFt, matCostTotal, laborCostTotal, tax, taxRate, total);
     }
     
@@ -76,12 +77,14 @@ public class OrderDaoImpl implements OrderDao {
             ));
         }
         catch (FileNotFoundException e){
-            throw new PersistenceException("-_-, Could not load roster data.");
+            throw new PersistenceException("-_-, Could not load order data.");
         }
         //Current line from file
         String currentLine;
         //order decoded from current line
         Order currentOrder;
+        //Skip Categories line
+        scanner.nextLine();
         //Iterate through roster file and decode line into order
         //Continue whilse lines exist in the file
         while(scanner.hasNextLine()){
@@ -97,11 +100,13 @@ public class OrderDaoImpl implements OrderDao {
 
         largestOrderNumber = orders.size();
     }
-    private int getLargestOrderNumber(){
+
+    @Override
+    public int getLargestOrderNumber(){
         return largestOrderNumber;
     }
 
-    private void setLargestOrderNumber(){
+    public void setLargestOrderNumber(){
         largestOrderNumber++;
     }
     @Override

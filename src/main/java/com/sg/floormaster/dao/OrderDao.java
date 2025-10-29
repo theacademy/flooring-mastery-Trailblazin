@@ -13,11 +13,14 @@ import java.util.Map;
  */
 public interface OrderDao {
 
+    Order unmarshallOrder(String orderAsText);
+
     void loadOrders() throws PersistenceException;
 
     Order getOrder(LocalDate date, int orderNo);
 
     List<Order> getOrdersForDate(LocalDate userDate);
+    int getLargestOrderNumber();
 
     List<Order> getOrders();
 

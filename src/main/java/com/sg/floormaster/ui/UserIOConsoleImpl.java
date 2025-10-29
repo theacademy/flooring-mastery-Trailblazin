@@ -4,8 +4,11 @@ import org.springframework.stereotype.Component;
 
 import javax.swing.text.DateFormatter;
 import java.math.BigDecimal;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
@@ -112,16 +115,18 @@ public class UserIOConsoleImpl implements UserIO {
     }
     @Override
     public LocalDate readDate(String prompt) {
-        DateFormatter dateFormat = new DateFormatter(new SimpleDateFormat("MMDDYYYY"));
-        LocalDate date = null;
+        DateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
+        Date date = null;
         try {
             print(prompt);
-            date = LocalDate.parse(sc.nextLine());
-            return date;
+            date = dateFormat.parse(sc.nextLine());
+            //Convert date to local date
+            return LocalDate.ofInstant(date.toInstant(), ZoneId.systemDefault());
         }
-        //TODO: Handle Exceptioon
-        catch (Exception ignored) {
-
+        catch (Exception e)
+        {
+            System.out.println(e.getMessage());
+            readDate(prompt);
         }
         return null;
     }
@@ -138,8 +143,10 @@ public class UserIOConsoleImpl implements UserIO {
             } while (date.isBefore(currOrderDate));
             return date;
         }
-        //TODO: Handle this exception properly
-        catch (Exception ignored){
+        catch (Exception e)
+        {
+            System.out.println(e.getMessage());
+            readDate(prompt, currOrderDate);
         }
         return null;
     }
@@ -205,22 +212,37 @@ public class UserIOConsoleImpl implements UserIO {
     @Override
     public BigDecimal readDecimal(String prompt) {
         print(prompt);
-        //TODO: Handle NumberFormatException here
-        return new BigDecimal(sc.nextLine());
+        try{
+            BigDecimal decimal = new BigDecimal(sc.nextLine());
+            return decimal;
+        }
+        catch (Exception e)
+        {
+            System.out.println(e.getMessage());
+            readDecimal(prompt);
+        }
+        return null;
     }
 
 
     @Override
     public BigDecimal readDecimal(String prompt, int min) {
         int val;
-        do {
-            print(prompt);
-            //TODO: Handle NumberFormatException here
-            //Convert string to int
-            val = Integer.parseInt(sc.nextLine());
-        } while (val < min);
-        //Convert back to string to use for big int
-        return new BigDecimal(Integer.toString(val));
+        try {
+            do {
+                print(prompt);
+                //Convert string to int
+                val = Integer.parseInt(sc.nextLine());
+            } while (val < min);
+            //Convert back to string to use for big int
+            return new BigDecimal(Integer.toString(val));
+        }
+        catch (Exception e)
+        {
+            System.out.println(e.getMessage());
+            readDecimal(prompt, min);
+        }
+        return null;
     }
 
 }

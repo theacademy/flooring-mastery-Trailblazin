@@ -11,6 +11,12 @@ public class Tax {
     private String stateName;
     private BigDecimal taxRate;
 
+    public Tax(String stateAbbr, String stateName, BigDecimal taxRate) {
+        this.stateAbbr = stateAbbr;
+        this.stateName = stateName;
+        this.taxRate = taxRate;
+    }
+
     public String getStateAbbr() {
         return stateAbbr;
     }
@@ -33,5 +39,14 @@ public class Tax {
 
     public void setTaxRate(BigDecimal taxRate) {
         this.taxRate = taxRate;
+    }
+
+    @Override
+    public String toString() {
+        return "Tax{" +
+                "stateAbbr='" + stateAbbr + '\'' +
+                ", stateName='" + stateName + '\'' +
+                ", taxRate=" + taxRate +
+                '}';
     }
 }
