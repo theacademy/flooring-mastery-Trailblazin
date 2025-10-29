@@ -7,11 +7,9 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * @author Kyle David Rudy
@@ -51,27 +49,26 @@ public class OrderView {
         io.print("ERROR: " + error);
     }
 
-    public void displayOrders(Map<Integer, Order> orders) {
+    public void displayOrders(List<Order> orders) {
         io.print("");
         io.print("All Orders");
 
         LocalDate date = io.readDate("Enter order date:");
-        //Steam Orders in Order to get all order information
-        orders.entrySet()
-                //Stream collection of Orders
-                .stream()
-                //Get all orders that match the date
-                .filter(order -> order.getValue().getOrderDate().equals(date))
-                //Print Details of the order
-                // .forEach(order -> io.print(order.toString()));
-                .forEach(order -> displayOrderDetails((Order) order));
+        //Iterate and output all orders that match date
+        for (Order order : orders)
+        {
+            if(order.getOrderDate() == date)
+            {
+                displayOrderDetails(order);
+            }
+        }
     }
 
 
     public void displayOrderDetails(Order order) {
         io.print("");
         //TODO: Format toString
-        io.print(order.toString());
+        io.print(order.toString() + "\n");
     }
 
     //Use Case: Add new order
@@ -86,34 +83,22 @@ public class OrderView {
         String productType = "";
         BigDecimal area = io.readDecimal("Please enter an area (sq.ft) for your order (>= 100 ): ");
         Order order = new Order(orderDate, customerName, state, productType, area);
-        //TODO: Need to get order number from Latest Order number in set/map
-        // order.setOrderNumber(orders.size()++);
-        order.setOrderNumber(0);
-        //TODO: Modify to correctly read from tax
-        order.setTaxRate(new BigDecimal("0"));
-        //TODO: Modify to correctly read from product
-        order.setMatCostPerSqFoot(new BigDecimal("0"));
-        order.setLabourCostPerSqFoot(new BigDecimal("0"));
 
-        //Do automatic calculations for remaining product values
-        //TODO: Move to one helper method in Order
-        order.setTax();
-        order.setMaterialCost();
-        order.setLabourCost();
-        order.setTotal();
+        //Returns the order or null, depending on if user wants to make changes
+        return confirmOrderChanges(order, "create");
+    }
 
+    private Order confirmOrderChanges(Order order, String modification) {
         displayOrderDetails(order);
 
-        if (confirmOrderUpdate())
+        if (confirmOrderModification(modification))
             return order;
-
-        //If use does not want to make update
         return null;
     }
 
-    public boolean confirmOrderUpdate() {
-        return io.readString("Would you like to place this order? " +
-                        "Press Y or y for Yes, anything else for No.")
+    public boolean confirmOrderModification(String modification) {
+        return io.readString(String.format("Would you like to %s this order? " +
+                        "Press Y or y for Yes, anything else for No.",modification))
                 .equalsIgnoreCase("y");
     }
 
@@ -121,11 +106,14 @@ public class OrderView {
         io.print("Order added successfully");
     }
 
-    public Order getOrderToUpdate(Map<Integer, Order> orders) {
+
+    //Helper method, get order by date and order no
+
+    public Order getOrder(Map<Integer, Order> orders) {
         io.print("");
-        LocalDate date = io.readDate("Enter date for the orders to update:");
+        LocalDate date = io.readDate("Enter date for the orders to retrieve:");
         //TODO: Add a print statement to display all orders which match the date
-        int orderNo = io.readInt("Enter the Order No. for the order to update:");
+        int orderNo = io.readInt("Enter the Order No. for the order to retrieve:");
         //Stream Orders in Order to get all order information
         /*
        Order orderMatch = (Order) orders.entrySet()
@@ -139,7 +127,7 @@ public class OrderView {
                 .orElse(null);
          */
         Order orderMatch = orders.get(orderNo);
-        if(orderMatch != null && orderMatch.getOrderDate() == date){
+        if (orderMatch != null && orderMatch.getOrderDate() == date) {
             return orderMatch;
         }
         // Should never happen,  we can't be using the same ID for multiple dates
@@ -148,10 +136,12 @@ public class OrderView {
         }
     }
 
-    public Order getUpdateOrder(Order orderToUpdate) {
+    //UseCase update an order
+
+    //TODO: Why return, we can just update by Order No as key in orders
+    public Order updateOrder(Order orderToUpdate) {
         io.print("Updating Order: " + orderToUpdate.getOrderNumber());
 
-        String currCustomerName = orderToUpdate.getCustomerName();
         String currState = orderToUpdate.getState();
         String currProductType = orderToUpdate.getProductType();
 
@@ -162,33 +152,38 @@ public class OrderView {
         int newArea = io.readInt("Enter the new state (Current: " + orderToUpdate.getArea(), 100, "");
         // Can cause overflow but should not
         int currArea = orderToUpdate.getArea().intValue();
-        if(newArea == -1)
-        {
+        //Could refactor, is -1 denotes an ignore input
+        //User does not want to change the current area
+        if (newArea == -1) {
             newArea = currArea;
         }
 
 
         boolean needsRecalc = false;
 
-        if(!Objects.equals(currState, newStateAbbr) || !Objects.equals(currProductType, newProductType) || newArea != currArea)
-        {
+        if (!Objects.equals(currState, newStateAbbr) ||
+                !Objects.equals(currProductType, newProductType) || newArea != currArea) {
             needsRecalc = true;
         }
 
-        if(!newCustomerName.equalsIgnoreCase("")){
+        if (!newCustomerName.equalsIgnoreCase("")) {
             orderToUpdate.setCustomerName(newCustomerName);
         }
-        if(!newStateAbbr.equalsIgnoreCase("")){
+        if (!newStateAbbr.equalsIgnoreCase("")) {
             orderToUpdate.setState(newStateAbbr);
         }
-        if(!newProductType.equalsIgnoreCase("")){
+        if (!newProductType.equalsIgnoreCase("")) {
             orderToUpdate.setProductType(newProductType);
         }
-        if(newArea != currArea){
+        if (newArea != currArea) {
             //Convert new area to string and use to create new Big Decimal with new value
             orderToUpdate.setArea(new BigDecimal(Integer.toString(newArea)));
         }
+        if (needsRecalc)
+            orderToUpdate.calculateOrderDetails();
 
+        //Returns the order or null, depending on if user wants to make changes
+        return confirmOrderChanges(orderToUpdate, "update");
 
     }
 
@@ -196,9 +191,11 @@ public class OrderView {
         io.print("Order updated successfully");
     }
 
-    public Order getOrderToDelete() {
+    public Order deleteOrder(Map<Integer, Order> orders) {
         io.print("");
-        io.readString("Enter Order to delete:");
+        // Will get order given input, ask if they want to delete order
+        // If order is returned, delete is wanted; if null, do not delete
+        return confirmOrderChanges(getOrder(orders),"delete");
     }
 
     public void displayDeleteSuccess() {

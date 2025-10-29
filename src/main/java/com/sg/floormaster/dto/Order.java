@@ -5,7 +5,6 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 
 /**
- *
  * @author Seun :D
  */
 public class Order {
@@ -30,6 +29,22 @@ public class Order {
         this.stateAbbr = stateAbbr;
         this.productType = productType;
         this.area = area;
+    }
+
+    public Order(int orderNumber, LocalDate orderDate, String customerName, String stateAbbr, String productType, BigDecimal area, BigDecimal matCostPerSqFoot, BigDecimal labourCostPerSqFoot, BigDecimal materialCost, BigDecimal labourCost, BigDecimal tax, BigDecimal taxRate, BigDecimal total) {
+        this.orderNumber = orderNumber;
+        this.orderDate = orderDate;
+        this.customerName = customerName;
+        this.stateAbbr = stateAbbr;
+        this.productType = productType;
+        this.area = area;
+        this.matCostPerSqFoot = matCostPerSqFoot;
+        this.labourCostPerSqFoot = labourCostPerSqFoot;
+        this.materialCost = materialCost;
+        this.labourCost = labourCost;
+        this.tax = tax;
+        this.taxRate = taxRate;
+        this.total = total;
     }
 
     public int getOrderNumber() {
@@ -121,7 +136,7 @@ public class Order {
     public void setTax() {
         this.tax = materialCost
                 .add(labourCost)
-                .multiply(taxRate.divide(taxDivisor,2, RoundingMode.HALF_UP));
+                .multiply(taxRate.divide(taxDivisor, 2, RoundingMode.HALF_UP));
     }
 
     public BigDecimal getTaxRate() {
@@ -139,6 +154,15 @@ public class Order {
     public void setTotal() {
         this.total = materialCost.add(labourCost.add(tax));
     }
+
+    public void calculateOrderDetails() {
+        this.setTax();
+        this.setMaterialCost();
+        this.setLabourCost();
+        this.setTotal();
+
+    }
+
 
     @Override
     public String toString() {

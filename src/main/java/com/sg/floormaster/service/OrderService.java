@@ -1,41 +1,23 @@
 package com.sg.floormaster.service;
 
+import com.sg.floormaster.dto.Order;
+import com.sg.floormaster.dto.Product;
 import com.sg.floormaster.dto.Tax;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 
-/**
- *
- * @author Kyle David Rudy
- */
-@Component
-public class OrderService {
-    
-    private BookDao dao;
-    @Autowired
-    public OrderService(BookDao dao) {
-        this.dao = dao;
-    }
+public interface OrderService {
 
-    public Tax getBookByTitle(String title) {
-        return dao.getBookByTitle(title);
-    }
-    
-    public List<Tax> getAllBooks() {
-        return dao.getAllBooks();
-    }
-    
-    public Tax addBook(Tax Order) {
-        return dao.addBook(Order);
-    }
-    
-    public void updateBook(Tax Order) {
-        dao.updateBook(Order);
-    }
-    
-    public void deleteBookByTitle(String title) {
-        dao.deleteBookByTitle(title);
-    }
+    int getNextOrderNumber();
+
+    void addOrder(Order order);
+
+    List<Order> getOrders();
+
+    void removeOrder(Order order);
+
+    List<Tax> getTaxes();
+
+    List<Product> getProducts();
 }

@@ -13,7 +13,7 @@ public class App {
         appContext.scan("com.sg.floorMaster");
         appContext.refresh();
         
-        OrderController controller = appContext.getBean("bookController", OrderController.class);
+        OrderController controller = appContext.getBean("orderController", OrderController.class);
         controller.run();
     }
 }
